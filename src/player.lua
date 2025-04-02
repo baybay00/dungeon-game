@@ -1,9 +1,9 @@
 local player = {
-    x = 100,
-    y = 100,
+    x = math.random(50, love.graphics.getWidth() - 50),
+    y = math.random(50, love.graphics.getHeight() - 50),
     speed = 100,
-    width = 100,
-    height = 100,
+    width = 75,
+    height = 75,
 }
 
 

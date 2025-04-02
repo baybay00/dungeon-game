@@ -11,8 +11,8 @@ local directions = {
 
 function enemies.spawn()
     return {
-        x = math.random(50, love.graphics.getWidth() - 50),
-        y = math.random(50, love.graphics.getHeight() -50),
+        x = math.random(100, love.graphics.getWidth() - 50),
+        y = math.random(100, love.graphics.getHeight() -50),
         speed = 75,
         radius = math.random(10, 30),
         direction = directions[math.random(#directions)],
@@ -20,7 +20,7 @@ function enemies.spawn()
     }
 end
 
-for i = 1, 10 do
+for i = 1, 20 do
     table.insert(enemies, enemies.spawn())
 end
 
