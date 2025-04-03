@@ -1,4 +1,4 @@
-local utils = require ('src.util')
+require 'Util'
 
 Map = {}
 Map.__index = Map
@@ -84,46 +84,50 @@ function Map:generateRoom()
         height = math.random(4, 8)
     }
 
-    -- -- ensure corners are always corners
-    -- room.tiles[1] = TILE_ID.WALLS.LEFT[1] 
-    -- room.tiles[(maxRoomHeight - 1) * maxRoomWidth] = TILE_ID.WALLS.RIGHT[5] 
-    -- room.tiles[maxRoomWidth] = TILE_ID.WALLS.RIGHT[1]
-    -- room.tiles[((maxRoomHeight - 1) * maxRoomWidth) - maxRoomWidth] = TILE_ID.WALLS.LEFT[5]
+    -- ensure corners are always corners
+    room.tiles[1] = TILE_ID.WALLS.LEFT[1] 
+    room.tiles[(room.height - 1) * room.width] = TILE_ID.WALLS.RIGHT[5] 
+    room.tiles[room.width] = TILE_ID.WALLS.RIGHT[1]
+    room.tiles[((room.height - 1) * room.width) - room.width] = TILE_ID.WALLS.LEFT[5]
 
-    -- -- set top walls
-    -- for i = 2, maxRoomWidth do 
-    --     local randIdx= math.random(1, #TILE_ID.WALLS.TOP)
-    --     local randElement = TILE_ID.WALLS.TOP[randIdx]
-    --     room.tiles[i] = randElement
-    -- end
+    -- set top walls
+    for i = 2, room.width do 
+        local randIdx= math.random(1, #TILE_ID.WALLS.TOP)
+        local randElement = TILE_ID.WALLS.TOP[randIdx]
+        room.tiles[i] = randElement
+    end
 
-    -- -- set left and right walls
-    -- for i = maxRoomWidth + 1, ((maxRoomHeight - 1) * maxRoomWidth) - maxRoomWidth do 
-    --     local FLAG = true -- true for left false for right
-    --     local randIdx = math.random(1, #TILE_ID.WALLS.LEFT) -- can use same idx for left and right since they are same length
-    --     local randElem_l = TILE_ID.WALLS.LEFT[randIdx]
-    --     local randElem_r = TILE_ID.WALLS.RIGHT[randIdx]
-    --     room.tiles[i] = randElem_l
+    -- set left and right walls
+    for i = room.width + 1, ((room.height - 1) * room.width) - room.width do 
+        local FLAG = true -- true for left false for right
+        local randIdx = math.random(1, #TILE_ID.WALLS.LEFT) -- can use same idx for left and right since they are same length
+        local randElem_l = TILE_ID.WALLS.LEFT[randIdx]
+        local randElem_r = TILE_ID.WALLS.RIGHT[randIdx]
+        room.tiles[i] = randElem_l
 
-    --     if FLAG then --alternates setting left or right wall 
-    --         room.tiles[i] = randElem_r
-    --         FLAG = false
-    --     end
-    -- end
+        if FLAG then --alternates setting left or right wall 
+            room.tiles[i] = randElem_r
+            FLAG = false
+        end
+    end
 
-    -- -- set bottom walls
-    -- for i = #room.tiles, (maxRoomHeight - 1) * maxRoomWidth do 
-    --     local randIdx = math.random(1, #TILE_ID.WALLS.BOTTOM)
-    --     local randElem = TILE_ID.WALLS.BOTTOM[randIdx]
-    --     room.tiles[i] = randElem
-    -- end
+    -- set bottom walls
+    for i = #room.tiles, (room.height - 1) * room.width do 
+        local randIdx = math.random(1, #TILE_ID.WALLS.BOTTOM)
+        local randElem = TILE_ID.WALLS.BOTTOM[randIdx]
+        room.tiles[i] = randElem
+    end
 
-    -- -- fill in the rest with floor
-    -- for j = 2, maxRoomHeight - 1 do
-    --     for i = 2 + maxRoomWidth, maxRoomWidth - 1 do
-    --         local randIdx = math.random(1, #TILE_ID.WALLS.BOTTOM)
-    --         local randElem = TILE_ID.FLOOR[randIdx]
-    --         room.tiles[i] = randElem
-    --     end
-    -- end
+    -- fill in the rest with floor
+    for j = 2, room.height - 1 do
+        for i = 2 + room.width, room.width - 1 do
+            local randIdx = math.random(1, #TILE_ID.WALLS.BOTTOM)
+            local randElem = TILE_ID.FLOOR[randIdx]
+            room.tiles[i] = randElem
+        end
+    end
+end
+
+function Map:render()
+    love.graphics.draw(self.spriteBatch)
 end
