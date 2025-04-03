@@ -1,4 +1,4 @@
-require 'Util'
+require 'src.Util'
 
 Map = {}
 Map.__index = Map
@@ -27,7 +27,7 @@ TILE_ID = {
 
 function Map:create()
     local this = {
-        ss = love.graphics.newImage('assets.sprites.Dungeon_Tileset.png'),
+        ss = love.graphics.newImage('assets/sprites/Dungeon_Tileset.png'),
         -- add music here later,
         tileWidth = 16,
         tileHeight = 16,
@@ -41,12 +41,13 @@ function Map:create()
 
     this.mapWidthPixels = this.mapWidth * this.tileWidth
     this.mapHeightPixels = this.mapHeight * this.tileHeight
+    this.tileSprites = Util:makeQuads(this.ss, 16, 16)
     this.spriteBatch = love.graphics.newSpriteBatch(this.ss, this.mapWidth * this.mapHeight)
     setmetatable(this, self)
 
-    for j = 1, this.mapHeight do -- fill map with empty tiles
-        for i = 1, this.mapWidth do
-            this:setTile(i, j, TILE_ID.EMPTY.BLACK)
+    for y = 1, this.mapHeight do -- fill map with empty tiles
+        for x = 1, this.mapWidth do
+            this:setTile(x, y, TILE_ID.EMPTY.BLACK)
         end
     end
 
@@ -57,7 +58,7 @@ function Map:create()
         local room = this:generateRoom()
         this:setRoom(roomX, roomY, room)
     end
-
+    this:refreshSpriteBatch()
     return this
 end
 
@@ -77,7 +78,7 @@ function Map:getRoom(x, y)
     return self.rooms[(y - 1) * self.mapWidth + x]
 end
 
-function Map:generateRoom()
+function Map:generateRoom()  --TODO: fix algoritm to correctly generate rooms
     local room = {
         tiles = {},
         width = math.random(4, 8),
@@ -126,7 +127,23 @@ function Map:generateRoom()
             room.tiles[i] = randElem
         end
     end
+
+    return room
 end
+
+function Map:refreshSpriteBatch() -- from cs50/mario-demo
+    -- sprite batch for efficient tile rendering
+    self.spriteBatch = love.graphics.newSpriteBatch(self.ss, self.mapWidth *
+    self.mapHeight)
+    -- create sprite batch from tile quads
+    for y = 1, self.mapHeight do
+        for x = 1, self.mapWidth do
+            self.spriteBatch:add(self.tileSprites[self:getTile(x, y)],
+                (x - 1) * self.tileWidth, (y - 1) * self.tileHeight)
+        end
+    end
+end
+
 
 function Map:render()
     love.graphics.draw(self.spriteBatch)

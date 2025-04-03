@@ -1,13 +1,13 @@
-local utils = {}
+Util = {}
 
-function utils.checkCollision(a, b)
+function Util:checkCollision(a, b)
     return a.x < b.x + b.radius and
     a.x + a.width > b.x and
     a.y < b.y + b.radius and
     a.y + a.height > b.y
 end
 
-function utils.makeQuads(atlas, tileWidth, tileHeight) --taken from cs50 mario-demo
+function Util:makeQuads(atlas, tileWidth, tileHeight) --taken from cs50 mario-demo
     local sheetWidth = atlas:getWidth() / tileWidth
     local sheetHeight = atlas:getHeight() / tileHeight
 
@@ -22,5 +22,3 @@ function utils.makeQuads(atlas, tileWidth, tileHeight) --taken from cs50 mario-d
     end
     return quads
 end
-
-return utils
