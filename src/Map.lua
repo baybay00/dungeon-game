@@ -53,10 +53,19 @@ function Map:create()
 
     local num_rooms = math.random(5, 10)
     for i = 1, num_rooms do
-        local roomX = math.random(1, this.mapWidth - 8)
-        local roomY = math.random(1, this.mapHeight - 8)
-        local room = this:generateRoom()
-        this:setRoom(roomX, roomY, room)
+        local room = self:generateRoom()
+        local roomX, roomY
+    
+        -- Try up to 10 times to find a valid position
+        for attempt = 1, 10 do
+            roomX = math.random(1, this.mapWidth - room.width)
+            roomY = math.random(1, this.mapHeight - room.height)
+    
+            if self:canPlaceRoom(roomX, roomY, room.width, room.height) then
+                self:setRoom(roomX, roomY, room)
+                break
+            end
+        end
     end
     this:refreshSpriteBatch()
     return this
@@ -72,63 +81,86 @@ end
 
 function Map:setRoom(x, y, room)
     self.rooms[(y - 1) * self.mapWidth + x] = room
+
+    for j = 1, room.height do
+        for i = 1, room.width do
+            local tileIndex = (j - 1) * room.width + i
+            local mapX = x + i - 1
+            local mapY = y + j - 1
+
+            -- Ensure we don't go out of bounds
+            if mapX <= self.mapWidth and mapY <= self.mapHeight then
+                self:setTile(mapX, mapY, room.tiles[tileIndex])
+            end
+        end
+    end
 end
 
 function Map:getRoom(x, y)
     return self.rooms[(y - 1) * self.mapWidth + x]
 end
 
-function Map:generateRoom()  --TODO: fix algoritm to correctly generate rooms
+function Map:generateRoom()
     local room = {
         tiles = {},
         width = math.random(4, 8),
         height = math.random(4, 8)
     }
 
-    -- ensure corners are always corners
-    room.tiles[1] = TILE_ID.WALLS.LEFT[1] 
-    room.tiles[(room.height - 1) * room.width] = TILE_ID.WALLS.RIGHT[5] 
-    room.tiles[room.width] = TILE_ID.WALLS.RIGHT[1]
-    room.tiles[((room.height - 1) * room.width) - room.width] = TILE_ID.WALLS.LEFT[5]
+    for y = 1, room.height do
+        for x = 1, room.width do
+            local index = (y - 1) * room.width + x
 
-    -- set top walls
-    for i = 2, room.width do 
-        local randIdx= math.random(1, #TILE_ID.WALLS.TOP)
-        local randElement = TILE_ID.WALLS.TOP[randIdx]
-        room.tiles[i] = randElement
-    end
+            -- Place corners
+            if x == 1 and y == 1 then
+                room.tiles[index] = TILE_ID.WALLS.LEFT[1] -- Top-left corner
+            elseif x == room.width and y == 1 then
+                room.tiles[index] = TILE_ID.WALLS.RIGHT[1] -- Top-right corner
+            elseif x == 1 and y == room.height then
+                room.tiles[index] = TILE_ID.WALLS.LEFT[#TILE_ID.WALLS.LEFT] -- Bottom-left corner
+            elseif x == room.width and y == room.height then
+                room.tiles[index] = TILE_ID.WALLS.RIGHT[#TILE_ID.WALLS.RIGHT] -- Bottom-right corner
 
-    -- set left and right walls
-    for i = room.width + 1, ((room.height - 1) * room.width) - room.width do 
-        local FLAG = true -- true for left false for right
-        local randIdx = math.random(1, #TILE_ID.WALLS.LEFT) -- can use same idx for left and right since they are same length
-        local randElem_l = TILE_ID.WALLS.LEFT[randIdx]
-        local randElem_r = TILE_ID.WALLS.RIGHT[randIdx]
-        room.tiles[i] = randElem_l
+            -- Place top and bottom walls
+            elseif y == 1 then
+                room.tiles[index] = TILE_ID.WALLS.TOP[math.random(#TILE_ID.WALLS.TOP)]
+            elseif y == room.height then
+                room.tiles[index] = TILE_ID.WALLS.BOTTOM[math.random(#TILE_ID.WALLS.BOTTOM)]
 
-        if FLAG then --alternates setting left or right wall 
-            room.tiles[i] = randElem_r
-            FLAG = false
-        end
-    end
+            -- Place left and right walls
+            elseif x == 1 then
+                room.tiles[index] = TILE_ID.WALLS.LEFT[math.random(2, #TILE_ID.WALLS.LEFT - 1)]
+            elseif x == room.width then
+                room.tiles[index] = TILE_ID.WALLS.RIGHT[math.random(2, #TILE_ID.WALLS.RIGHT - 1)]
 
-    -- set bottom walls
-    for i = #room.tiles, (room.height - 1) * room.width do 
-        local randIdx = math.random(1, #TILE_ID.WALLS.BOTTOM)
-        local randElem = TILE_ID.WALLS.BOTTOM[randIdx]
-        room.tiles[i] = randElem
-    end
+            -- Fill floor
+            else
+                room.tiles[index] = TILE_ID.FLOOR[math.random(#TILE_ID.FLOOR)]
+            end
 
-    -- fill in the rest with floor
-    for j = 2, room.height - 1 do
-        for i = 2 + room.width, room.width - 1 do
-            local randIdx = math.random(1, #TILE_ID.WALLS.BOTTOM)
-            local randElem = TILE_ID.FLOOR[randIdx]
-            room.tiles[i] = randElem
+ 
         end
     end
 
     return room
+end
+
+function Map:canPlaceRoom(x, y, width, height)
+    if x < 1 or y < 1 then
+    -- or x + width - 1 > self.mapWidth or y + height - 1 > self.mapHeight then
+        return false
+    end
+
+    -- Check if all tiles in the room's area are EMPTY.BLACK
+    for j = 0, height - 1 do
+        for i = 0, width - 1 do
+            local tile = self:getTile(x + i, y + j)
+            if tile ~= TILE_ID.EMPTY.BLACK then
+                return false
+            end
+        end
+    end
+    return true
 end
 
 function Map:refreshSpriteBatch() -- from cs50/mario-demo
@@ -142,6 +174,10 @@ function Map:refreshSpriteBatch() -- from cs50/mario-demo
                 (x - 1) * self.tileWidth, (y - 1) * self.tileHeight)
         end
     end
+end
+
+function Map:connectRooms()
+
 end
 
 
